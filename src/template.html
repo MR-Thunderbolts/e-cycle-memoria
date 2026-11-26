@@ -149,7 +149,7 @@ code{font:500 .9em var(--mono);background:#EEEFEA;padding:1px 5px;border-radius:
 .meter i{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--ink)}
 .sim-out p{margin-top:14px!important;font-size:15px!important;font-weight:600}
 .proto{display:grid;grid-template-columns:360px 1fr;gap:32px;align-items:center;margin:20px 0 30px}
-.phone{width:320px;height:664px;border-radius:42px;background:#0B0B0B;padding:12px;box-shadow:0 20px 50px rgba(0,0,0,.25);transition:background .3s,box-shadow .3s}
+.phone{width:320px;height:664px;border-radius:42px;background:#0B0B0B;padding:12px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
 .phone .scr{width:296px;height:640px;border-radius:30px;overflow:hidden;position:relative;background:var(--bg)}
 /* El MVP se dibuja a 390 × 844 (tamaño real de un celular) y se escala al marco */
 .phone iframe{position:absolute;left:0;top:0;width:390px;height:844px;border:0;transform:scale(.759);transform-origin:0 0;background:var(--bg)}
@@ -627,6 +627,15 @@ figure{margin:22px 0 30px}
 .mk.ub .mk-steps li{color:#6B6B6B}.mk.ub .mk-steps li::before{border-radius:2px;border-color:#000}.mk.ub .mk-steps li.ok{color:#000;font-weight:600}.mk.ub .mk-steps li.ok::before{background:#000}
 .mk.ub .mk-btn{background:#000;color:#fff;border-radius:8px;font-weight:600}
 .rpair .dec{display:block;margin-top:10px;font-size:12.5px;line-height:1.45;color:var(--primary);background:#E3F4EE;border-radius:8px;padding:8px 10px}
+
+.phone .scr,.phone{transition:opacity .26s ease,transform .26s cubic-bezier(.2,.8,.2,1),width .4s cubic-bezier(.2,.8,.2,1),height .4s cubic-bezier(.2,.8,.2,1),background .3s,box-shadow .3s,padding .3s}
+.phone .scr{position:relative}
+.phone.swap-out .scr{opacity:0;transform:scale(.97)}
+.phone .scr::after{content:"";position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:3px solid rgba(29,233,182,.25);border-top-color:var(--accent);opacity:0;pointer-events:none}
+.phone.loading{position:relative}
+.phone.loading::after{content:"";position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:3px solid rgba(25,185,154,.25);border-top-color:var(--mint);animation:pvspin .8s linear infinite}
+@keyframes pvspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.phone,.phone .scr{transition:none}.phone.loading::after{animation:none}}
 /* ---- botón PDF ---- */
 .btn-pdf{display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:var(--accent)!important;color:#121212!important;border-color:var(--accent)!important}
 @media (max-width:1000px){.bmc2 .bg{grid-template-columns:1fr 1fr}.bmc2 .bc{grid-column:auto!important;grid-row:auto!important}.nm-cols,.ax-grid{grid-template-columns:1fr 1fr}.rpair{grid-template-columns:1fr}}
@@ -855,7 +864,19 @@ figure{margin:22px 0 30px}
   }
   /* --- pestañas del prototipo --- */
   var pvf=document.getElementById('pvFrame');
-  document.querySelectorAll('.pv-tabs button').forEach(function(t){ t.addEventListener('click',function(){ document.querySelectorAll('.pv-tabs button').forEach(function(x){x.setAttribute('aria-selected',x===t)}); pvf.src=t.dataset.src; pvf.closest('.phone').classList.toggle('is-figma', t.dataset.src.indexOf('figma.com')>-1); }); });
+  document.querySelectorAll('.pv-tabs button').forEach(function(t){ t.addEventListener('click',function(){
+    if(t.getAttribute('aria-selected')==='true') return;
+    document.querySelectorAll('.pv-tabs button').forEach(function(x){x.setAttribute('aria-selected',x===t)});
+    var ph=pvf.closest('.phone'), toFig=t.dataset.src.indexOf('figma.com')>-1, done=false;
+    ph.classList.add('swap-out');
+    setTimeout(function(){
+      ph.classList.toggle('is-figma', toFig); ph.classList.add('loading');
+      pvf.src=t.dataset.src;
+      function show(){ if(done) return; done=true; ph.classList.remove('swap-out','loading'); }
+      pvf.addEventListener('load', function(){ setTimeout(show, toFig?350:150); }, {once:true});
+      setTimeout(show, 2500);
+    }, 260);
+  }); });
 
   /* --- simulador de retiro (pesos del MVP) --- */
   var items=[['Televisores o monitores',8],['Notebooks',2.2],['Computadores de escritorio',7],['Electrodomésticos pequeños',3],['Celulares',0.2],['Cables y cargadores',0.15]], qty=items.map(function(){return 0});
