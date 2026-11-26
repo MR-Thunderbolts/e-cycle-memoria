@@ -1763,14 +1763,19 @@ window.ECLogo=(function(){
   /* Fin de la intro: el logo viaja desde el centro hasta su lugar en la portada y el resto aparece en cascada. */
   var coverSvg=document.getElementById('coverLogo'), cvs=[].slice.call(document.querySelectorAll('.cover .cv'));
   function coverIn(){ cvs.forEach(function(el,i){ el.classList.add('rv'); el.style.setProperty('--rd',(.08+i*.12)+'s'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('in'); }); }); }); }
+  /* subir al inicio sin animación: con scroll suave, el logo de la portada se mediría fuera de pantalla */
+  if('scrollRestoration' in history) history.scrollRestoration='manual';
+  function toTop(){ var h=document.documentElement, sb=h.style.scrollBehavior; h.style.scrollBehavior='auto'; window.scrollTo(0,0); h.scrollTop=0; document.body.scrollTop=0; h.style.scrollBehavior=sb; }
   function endIntro(){
     if(intro.classList.contains('out')||intro.dataset.flip)return;
     store.set('sessionStorage','ec-intro','1');
     if(introLogo){ introLogo.stop=true; introLogo.draw(TOTAL+1); }
-    var isvg=document.getElementById('introSvg'); window.scrollTo(0,0);
+    var isvg=document.getElementById('introSvg'); toTop();
     cover.draw(TOTAL+1); coverSvg.style.opacity=0;
     var a=isvg.getBoundingClientRect(), b=coverSvg.getBoundingClientRect(), k=b.width/a.width;
     intro.dataset.flip='1'; intro.classList.add('flying');
+    /* si el logo de la portada no está a la vista o no tiene tamaño, no se vuela: se funde */
+    if(!(k>0) || b.bottom<0 || b.top>innerHeight){ setTimeout(function(){ coverSvg.style.opacity=1; intro.classList.add('out'); intro.setAttribute('aria-hidden','true'); coverIn(); if(covMode==='sim') play(cover); }, 50); setTimeout(function(){ intro.hidden=true; delete intro.dataset.flip; intro.classList.remove('flying'); }, 850); return; }
     isvg.style.transformOrigin='0 0';
     isvg.style.transition='transform 1s cubic-bezier(.7,0,.2,1)';
     isvg.style.transform='translate('+(b.left-a.left)+'px,'+(b.top-a.top)+'px) scale('+k+')';
@@ -1783,7 +1788,7 @@ window.ECLogo=(function(){
     /* Los textos de la portada quedan ocultos, sin transición, mientras corre la intro. */
     cvs.forEach(function(el){ el.style.transition='none'; el.classList.add('rv'); el.classList.remove('in'); void el.offsetWidth; el.style.transition=''; });
     coverSvg.style.opacity=0;
-    intro.hidden=false; intro.classList.remove('out','flying'); delete intro.dataset.flip; svg.style.transition='none'; svg.style.transform=''; intro.setAttribute('aria-hidden','false'); window.scrollTo(0,0);
+    intro.hidden=false; intro.classList.remove('out','flying'); delete intro.dataset.flip; svg.style.transition='none'; svg.style.transform=''; intro.setAttribute('aria-hidden','false'); toTop();
     play(introLogo, 0, function(){ setTimeout(endIntro, 650); });
   }
   document.getElementById('skip').addEventListener('click', endIntro);
@@ -1950,8 +1955,11 @@ window.ECLogo=(function(){
   }
   window.addEventListener('beforeprint', prep);
   window.addEventListener('afterprint', function(){ document.documentElement.classList.remove('printing'); });
+  /* Versión final: poner aquí la ruta del PDF oficial (p. ej. 'memoria-e-cycle.pdf') y el botón lo descarga en vez de abrir la impresión. */
+  var PDF_URL = '';
   document.querySelectorAll('[data-print]').forEach(function(b){
     b.addEventListener('click', function(){
+      if(PDF_URL){ var a=document.createElement('a'); a.href=PDF_URL; a.download=''; document.body.appendChild(a); a.click(); a.remove(); return; }
       prep();
       setTimeout(function(){
         try { window.print(); }
