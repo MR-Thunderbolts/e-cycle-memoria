@@ -192,9 +192,9 @@ D['PROTO'] = '''
   <div class="pv">
     <div class="pv-tabs" role="tablist" aria-label="Versión a mostrar">
       <button role="tab" aria-selected="true" data-src="https://e-cycle-tau.vercel.app" type="button">MVP en vivo</button>
-      <button role="tab" aria-selected="false" data-src="https://embed.figma.com/proto/jV6NVg7yiB1AiKIu9M7VG6/E-Cycle-V2.1?node-id=4-8&amp;scaling=scale-down&amp;content-scaling=fixed&amp;hide-ui=1&amp;embed-host=share" type="button">Prototipo Figma</button>
+      <button role="tab" aria-selected="false" data-src="https://embed.figma.com/proto/jV6NVg7yiB1AiKIu9M7VG6/E-Cycle-V2.1?node-id=4-8&amp;scaling=contain&amp;content-scaling=fixed&amp;hide-ui=1&amp;embed-host=share" type="button">Prototipo Figma</button>
     </div>
-    <div class="phone"><iframe id="pvFrame" src="https://e-cycle-tau.vercel.app" title="e-cycle" loading="lazy" allow="geolocation"></iframe></div>
+    <div class="phone"><div class="scr"><iframe id="pvFrame" src="https://e-cycle-tau.vercel.app" title="e-cycle" loading="lazy" allow="geolocation"></iframe></div></div>
     <p class="cap" style="text-align:center">¿No carga? <a href="https://e-cycle-tau.vercel.app" target="_blank" rel="noopener">Abrir el MVP ↗</a> · <a href="https://www.figma.com/proto/jV6NVg7yiB1AiKIu9M7VG6" target="_blank" rel="noopener">Abrir en Figma ↗</a></p>
   </div>
   <div class="proto-txt">
