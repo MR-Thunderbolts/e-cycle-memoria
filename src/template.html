@@ -658,7 +658,8 @@ html.printing .swot .sw{clip-path:none!important}
   h2,h3,h4{break-after:avoid}
   .pxgrid canvas,.pxgrid img.pximg{display:none!important}
   .pxgrid{-webkit-mask-image:none!important;mask-image:none!important}
-  .pxgrid svg.pxsvg{display:block!important;width:100%;height:100%}
+  .pxgrid svg.pxsvg{display:block!important;position:absolute;inset:0;width:100%;height:100%}
+  .opener{break-inside:avoid;page-break-inside:avoid}
   .prose{max-width:none!important;padding:8mm 0 0!important}
   .prose h2{font-size:21px!important;margin:30px 0 10px!important}
   .prose h3{margin-top:22px!important}
@@ -667,7 +668,9 @@ html.printing .swot .sw{clip-path:none!important}
   .opener{border-radius:6px;padding:22mm 12mm 12mm!important;break-after:avoid}
   .op-num{font-size:110px!important}
   .cover{min-height:265mm!important;border-radius:6px;break-after:page}
-  .keep{break-inside:avoid}
+  .keep,.atom{break-inside:avoid;page-break-inside:avoid}
+  .atom{margin-bottom:12px}
+  .keep>*:last-child{margin-bottom:0}
   figure,.dark-block,.rpair,.ax-card,.nm-col,.bc,.cycle,table,.vp,.cards4>div,.why li,.iter li,.gt-row,.annex li,.niner{break-inside:avoid}
   .why,.actors,.gantt,.iter,.refpairs,.annex,.ax-grid{break-inside:auto}
   .print-only{display:block!important}
@@ -945,7 +948,22 @@ html.printing .swot .sw{clip-path:none!important}
     /* la grilla de píxeles es un canvas animado: para imprimir se congela como imagen */
     if(window.ecGridsToSVG) window.ecGridsToSVG();
     /* mantener cada título junto al bloque que lo sigue */
-    document.querySelectorAll('.prose > h2, .prose > h3').forEach(function(h){ if(h.parentNode.classList.contains('keep')) return; var n=h.nextElementSibling; if(!n) return; var w=document.createElement('div'); w.className='keep'; h.parentNode.insertBefore(w,h); w.appendChild(h); if(n.offsetHeight<700) w.appendChild(n); });
+    if(!document.documentElement.dataset.paged){ document.documentElement.dataset.paged='1';
+      /* Safari (WebKit) casi no respeta break-inside:avoid; los bloques inline-* sí son indivisibles.
+         Se vuelven indivisibles: cada título con el bloque que lo sigue, y cada figura o tarjeta que cabe en una página. */
+      var MAXH=880;
+      function atom(el){ var d=getComputedStyle(el).display; if(d.indexOf('inline')===0||d==='none'||d==='contents') return;
+        el.style.display = d==='grid'?'inline-grid':(d==='flex'?'inline-flex':(d==='table'?'inline-table':'inline-block'));
+        el.style.width='100%'; el.style.boxSizing='border-box'; el.style.verticalAlign='top'; el.classList.add('atom'); }
+      document.querySelectorAll('.prose > h2, .prose > h3').forEach(function(h){ var n=h.nextElementSibling; if(!n) return;
+        var w=document.createElement('div'); w.className='keep'; h.parentNode.insertBefore(w,h); w.appendChild(h);
+        if(n.offsetHeight<MAXH && !/^(H2|H3)$/.test(n.tagName)) w.appendChild(n); });
+      document.querySelectorAll('.prose > *').forEach(function(el){
+        if(el.offsetHeight<MAXH && (el.classList.contains('keep') || !/^(P|UL|OL)$/.test(el.tagName))) atom(el); });
+      /* figuras largas: se dividen entre sus filas, pero cada fila queda entera */
+      document.querySelectorAll('.iter ol,.why ol,.refpairs,.annex,.ax-grid,.gt').forEach(function(c){ if(c.offsetHeight<MAXH) return; c.style.display='block'; [].forEach.call(c.children,function(k){ if(k.offsetHeight<MAXH){ atom(k); k.style.marginBottom='10px'; } }); });
+      document.querySelectorAll('.keep figure, .keep .dark-block').forEach(function(f){ f.style.marginBottom='18px'; });
+    }
     var i=document.getElementById('intro'); if(i) i.hidden=true;
     document.body.classList.remove('intro-on');
   }
